@@ -14,6 +14,7 @@ import (
 func main() {
 	day := flag.Int("day", -1, "day to run this code for ")
 	test := flag.Bool("test", false, "should this run for test  input for real input")
+
 	logger := log.New(os.Stdout, "aoc-go", log.Default().Flags())
 	flag.Parse()
 	if *day == -1 {
@@ -45,11 +46,13 @@ func main() {
 }
 
 func computeFirst(content []byte, day int) {
+	fmt.Println(fmt.Sprintf("running the first part for day %d", day))
 	stub := globals.FuncMap[fmt.Sprintf("%d-%d", day, 1)]
 	stub(content)
 }
 
 func computeSecond(content []byte, day int) {
+	fmt.Println(fmt.Sprintf("running the second part for day %d", day))
 	stub := globals.FuncMap[fmt.Sprintf("%d-%d", day, 2)]
 	stub(content)
 }
