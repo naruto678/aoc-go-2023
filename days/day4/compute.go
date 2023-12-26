@@ -2,13 +2,14 @@ package day4
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/naruto678/aoc-go/globals"
 )
 
 type Card struct {
-	cardNum    string
+	cardNum    int
 	winningSet map[string]bool
 	handSet    map[string]bool
 	score      int
@@ -47,8 +48,13 @@ func NewCard(input string) *Card {
 	cardName, values := cardAttrs[0], cardAttrs[1]
 	id, found := strings.CutPrefix(cardName, "Card ")
 
+	parsedId, err := strconv.Atoi(strings.TrimSpace(id))
+	if err != nil {
+		panic(err)
+	}
+
 	card := &Card{
-		cardNum:    id,
+		cardNum:    parsedId,
 		winningSet: map[string]bool{},
 		handSet:    map[string]bool{},
 	}
@@ -84,12 +90,27 @@ func computeFirst(content []byte) {
 }
 func computeSecond(content []byte) {
 	strContent := string(content)
+	cardMap := map[int]*Card{}
 	cards := []*Card{}
 	for _, line := range strings.Split(strContent, "\n") {
-		cards = append(cards, NewCard(line))
-	}
+		card := NewCard(line)
+		cardMap[card.cardNum] = card
+		cards = append(cards, card)
 
-	panic("not computed yet ")
+	}
+	count := 0
+	for len(cards) > 0 {
+		top := cards[0]
+		cards = cards[1:]
+		count++
+		matches := top.GetMatches()
+		for i := 1; i <= matches; i++ {
+			if cardMap[i+top.cardNum] != nil {
+				cards = append(cards, cardMap[i+top.cardNum])
+			}
+		}
+	}
+	fmt.Println(fmt.Sprintf("Computed the second part %d", count))
 }
 
 func init() {
