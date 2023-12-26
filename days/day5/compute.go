@@ -100,7 +100,7 @@ func NewAlmanac(content string) *Almanac {
 			if currentMap != nil && len(strings.TrimSpace(lines[i])) > 0 {
 				fields := strings.Fields(lines[i])
 				if len(fields) != 3 {
-					panic(fmt.Errorf("%V invalid fields ", fields))
+					panic(fmt.Errorf("%s invalid fields ", fields))
 				}
 				dest, src, length := parseFields(lines[i])
 				pair := Pair{dest, src, length}
