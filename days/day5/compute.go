@@ -19,15 +19,19 @@ const (
 	HUMIDITY_TO_LOCATION_MAP    = "humidity-to-location map:"
 )
 
+type Pair struct {
+	dest, src, length int
+}
+
 type Almanac struct {
 	seeds                 []int
-	seedToSoilMap         map[int]int
-	soilToFertilizerMap   map[int]int
-	fertilizerToWaterMap  map[int]int
-	waterToLightMap       map[int]int
-	lightToTempMap        map[int]int
-	tempToHumidityMap     map[int]int
-	humidityToLocationMap map[int]int
+	seedToSoilMap         []Pair
+	soilToFertilizerMap   []Pair
+	fertilizerToWaterMap  []Pair
+	waterToLightMap       []Pair
+	lightToTempMap        []Pair
+	tempToHumidityMap     []Pair
+	humidityToLocationMap []Pair
 }
 
 func NewAlmanac(content string) *Almanac {
@@ -39,13 +43,13 @@ func NewAlmanac(content string) *Almanac {
 
 	almanac := &Almanac{
 		seeds:                 []int{},
-		seedToSoilMap:         map[int]int{},
-		soilToFertilizerMap:   map[int]int{},
-		fertilizerToWaterMap:  map[int]int{},
-		waterToLightMap:       map[int]int{},
-		lightToTempMap:        map[int]int{},
-		tempToHumidityMap:     map[int]int{},
-		humidityToLocationMap: map[int]int{},
+		seedToSoilMap:         []Pair{},
+		soilToFertilizerMap:   []Pair{},
+		fertilizerToWaterMap:  []Pair{},
+		waterToLightMap:       []Pair{},
+		lightToTempMap:        []Pair{},
+		tempToHumidityMap:     []Pair{},
+		humidityToLocationMap: []Pair{},
 	}
 
 	for _, seed := range strings.Fields(all_seeds) {
@@ -73,7 +77,7 @@ func NewAlmanac(content string) *Almanac {
 		return dest, src, length
 	}
 
-	var currentMap *map[int]int
+	var currentMap *[]Pair
 
 	for i := 1; i < len(lines); i++ {
 		switch lines[i] {
@@ -99,10 +103,8 @@ func NewAlmanac(content string) *Almanac {
 					panic(fmt.Errorf("%V invalid fields ", fields))
 				}
 				dest, src, length := parseFields(lines[i])
-				for i := 0; i < length; i++ {
-					(*currentMap)[src+i] = dest + i
-				}
-
+				pair := Pair{dest, src, length}
+				*currentMap = append(*currentMap, pair)
 			}
 		}
 
@@ -112,7 +114,7 @@ func NewAlmanac(content string) *Almanac {
 
 }
 
-func (a *Almanac) getMap(id int) map[int]int {
+func (a *Almanac) getMap(id int) []Pair {
 	switch id {
 	case 1:
 		return a.seedToSoilMap
@@ -136,15 +138,17 @@ func (a *Almanac) getMap(id int) map[int]int {
 func (a *Almanac) GetLocationNumber(seedId int) int {
 	id := seedId
 	for i := 1; i <= 7; i++ {
-		//oldId := id
-		newId, isValid := a.getMap(i)[id]
-		if isValid {
-			id = newId
-		} else {
-			newId = id
+		pairs := a.getMap(i)
+		for _, pair := range pairs {
+			src, dest, length := pair.src, pair.dest, pair.length
+			//oldId := id
+			if id >= src && id < src+length {
+				diff := id - src
+				id = diff + dest
+				break
+			}
+			//fmt.Println(fmt.Sprintf("%d ---> %d %v %d", oldId, id, pairs, src))
 		}
-
-		//fmt.Println(fmt.Sprintf("%d-->%d", oldId, newId))
 
 	}
 	return id
