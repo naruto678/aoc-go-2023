@@ -111,8 +111,11 @@ func computeFirst(content []byte) {
 
 func computeSecond(content []byte) {
 	arr, visited := parseInput(strings.Split(string(content), "\n"))
-
-	var dfs func(int, int)
+	component := make([][]int, len(content))
+	for idx := range component {
+		component[idx] = make([]int, len(arr[0]))
+	}
+	var dfs func(int, int, int)
 
 	isValid := func(row, col int) bool {
 		if row < 0 || col < 0 || row >= len(arr) || col >= len(arr[0]) {
@@ -120,26 +123,29 @@ func computeSecond(content []byte) {
 		}
 		return true
 	}
-	dfs = func(row, col int) {
+	dfs = func(row, col int, count int) {
 
 		if !isValid(row, col) {
 			return
 		}
 		visited[row][col] = true
+		component[row][col] = count
 		for _, dir := range directions {
 			x := row + dir[0]
 			y := col + dir[1]
 			if isValid(x, y) && !visited[x][y] && arr[x][y] != '.' {
-				dfs(x, y)
+				dfs(x, y, count)
 			}
 		}
 
 	}
 
+	count := 1
 	for i := range arr {
 		for j := range arr[i] {
 			if arr[i][j] == '*' && !visited[i][j] {
-				dfs(i, j)
+				dfs(i, j, count)
+				count++
 			}
 		}
 	}
@@ -151,34 +157,39 @@ func computeSecond(content []byte) {
 			}
 		}
 	}
-	prettyPrint(visited)
+	total_sum := 0
 
-	total := 0
+	gears := map[int][]int{}
+
 	for i := range arr {
-		numbers := []int{}
-		currentNum := 0
-		for start := 0; start < len(arr[i]); start++ {
+		start := 0
+
+		current_sum := 0
+		current_component := 0
+		for start < len(arr[i]) {
 			if visited[i][start] {
-				currentNum = currentNum*10 + int(arr[i][start]-'0')
+				current_sum = current_sum*10 + int(arr[i][start]-'0')
+				current_component = component[i][start]
 			} else {
-				if currentNum > 0 {
-					numbers = append(numbers, currentNum)
-					currentNum = 0
+				if current_sum > 0 {
+					gears[current_component] = append(gears[current_component], current_sum)
 				}
+				current_sum = 0
+				current_component = 0
 			}
+			start++
 		}
-		if currentNum > 0 {
-			numbers = append(numbers, currentNum)
+		if current_sum != 0 {
+			gears[current_component] = append(gears[current_component], current_sum)
 		}
-
-		if len(numbers) < 2 {
-			continue
-		}
-		fmt.Println(numbers)
-		total += numbers[0] * numbers[1]
-
 	}
-	fmt.Println(fmt.Sprintf("computed the second part %d", total))
+
+	for gear := range gears {
+		if len(gears[gear]) == 2 {
+			total_sum += gears[gear][0] * gears[gear][1]
+		}
+	}
+	fmt.Println(fmt.Sprintf("computed the second part %d", total_sum))
 
 }
 
